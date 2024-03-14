@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: npm install -g @marp-team/marp-cli
       - name: Build slides
-        run: npx @marp-team/marp-cli slides/ --output build/
+        run: npx @marp-team/marp-cli --input-dir slides/ --output build/
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
