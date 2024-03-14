@@ -1,0 +1,4 @@
+inputDir: slides
+outputDir: dist
+themeSet: theme/gaia.css
+allowLocalFiles: true

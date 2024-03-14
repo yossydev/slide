@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  generate:
+    image: marpteam/marp-cli
+    user: "${MARP_USER:-root}"
+    volumes:
+      - .:/home/marp/app
+    working_dir: /home/marp/app
