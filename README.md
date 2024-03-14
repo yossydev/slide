@@ -1,6 +1,6 @@
 # yossydev slide
 
-[![Actions Status](https://github.com/hofbi/tum-marp-template/workflows/CI/badge.svg)](https://github.com/hofbi/tum-marp-template)
+[![Actions Status](https://github.com/yossydev/slide/actions/workflows/build-and-deploy.yml/badge.svg)](https://github.com/yossydev/slide)
 
 ## Build
 
