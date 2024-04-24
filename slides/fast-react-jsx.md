@@ -25,18 +25,39 @@ paginate: true
 
 ## Agenda
 
-1. Previous JSX in React.
-   1. key, refの予約語をpropsから削除すること
-   2. createElementがpublic apiである
-2. How speeding up works from an implementation point of view
+1. 高速化のポイント
+1. key, refの予約語をpropsからの削除
+1. public apiであるcreateElement後のpropsの上書き
+1. 実装を見る
 
 ---
 
-# Previous JSX in React.
+# 高速化の要因
 
 ---
 
-## 1. key, refの予約語をpropsから削除すること
+# 高速化の要因
+
+## propsをクローンする必要がなくなった
+
+---
+
+# 高速化の要因
+
+## propsをクローンする必要がなくなった
+
+### ではなぜpropsをクローンする必要があったのか
+
+1.  key, refの予約語をpropsからの削除
+2.  public apiであるcreateElement後のpropsの上書き
+
+---
+
+# 1. key, refの予約語をpropsから削除すること
+
+---
+
+## 1. key, refの予約語をpropsから削除すること: keyとref
 
 - key: リスト内の要素を一意に識別するためのプロパティ
 - ref: コンポーネントのdom動作を行うことができるプロパティ
@@ -134,10 +155,6 @@ function Greeting({ name }) {           function Greeting({ name }) {
 ユーザーがpropsの上書きができてしまうので、予期しないバグが起きる恐れがある。
 
 ```ts
-const element = React.createElement("div", { className: "my-div" });
-console.log(element.props.className); // 'my-div'
-
-// propsオブジェクトを変更する
 const props = { className: "my-div" };
 const element2 = React.createElement("div", props);
 props.className = "my-div-changed";
@@ -167,12 +184,10 @@ function Greeting({ name }) {           function Greeting({ name }) {
 
 ## 2. createElementがpublic apiである
 
-### 疑問点
-
 > the new JSX runtime, jsx, is not a public API
 > 翻訳: 新しいJSXランタイムjsxはパブリックAPIではない
 
-🧐
+jsx関数にしたことでpropsの上書きを考慮しなくて良くなった。
 
 ---
 
@@ -222,7 +237,11 @@ export function jsx(
 
 ---
 
-## コードを覗いてみる
+# 実装を見てみる
+
+---
+
+## 実装を見てみる
 
 単純にfor分で回さなくてよくなったので早くなってそう...？？👀
 
