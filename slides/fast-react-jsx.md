@@ -107,7 +107,9 @@ keyとrefをpropsで渡さないようにする必要があった。
 
 ## 2. createElementがpublic apiである
 
-`createElemet` is 何？ → React17以前で使われていたjsxをdomに変換するための関数
+### `createElemet` is 何？
+
+React17以前で使われていたjsxをdomに変換するための関数。これは我々開発者がReactからimportして使用することもできる
 
 ```tsx
 // jsx                                  // compiled jsx
@@ -124,3 +126,139 @@ function Greeting({ name }) {           function Greeting({ name }) {
 ```
 
 ---
+
+## 2. createElementがpublic apiである
+
+### ユーザーによるpropsの上書き
+
+ユーザーがpropsの上書きができてしまうので、予期しないバグが起きる恐れがある。
+
+```ts
+const element = React.createElement("div", { className: "my-div" });
+console.log(element.props.className); // 'my-div'
+
+// propsオブジェクトを変更する
+const props = { className: "my-div" };
+const element2 = React.createElement("div", props);
+props.className = "my-div-changed";
+console.log(element2.props.className); // 'my-div-changed'
+```
+
+---
+
+## 2. createElementがpublic apiである
+
+### React17以降
+
+createElementではなくjsx関数が使われるようになった。([React17におけるJSXの新しい変換を理解する](https://zenn.dev/uhyo/articles/react17-new-jsx-transform))
+
+```tsx
+// jsx                                  // compiled jsx
+function Greeting({ name }) {           function Greeting({ name }) {
+  return (                                  return _jsxs("h1", {
+    <h1 className="greeting">                    className: "greeting",
+      Hello <i>{name}</i>. Welcome!              children: ["Hello ", _jsx("i", { children: name }), ". Welcome!"]
+    </h1>                                   });
+  );                                    }
+}
+```
+
+---
+
+## 2. createElementがpublic apiである
+
+### 疑問点
+
+> the new JSX runtime, jsx, is not a public API
+> 翻訳: 新しいJSXランタイムjsxはパブリックAPIではない
+
+🧐
+
+---
+
+## 2. createElementがpublic apiである
+
+### 疑問点: the new JSX runtime, jsx, is not a public API
+
+`react/jsx-runtime`からimportして使えるやーーん
+
+```tsx
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+
+const Foo = () => {
+  return _jsxs(
+    "div",
+    {
+      children: [
+        _jsx("p", { id: "a", children: "I am foo" }, void 0),
+        _jsx("p", { children: "I am foo2" }, "b"),
+      ],
+    },
+    void 0,
+  );
+};
+```
+
+---
+
+## 2. createElementがpublic apiである
+
+### 予想: the new JSX runtime, jsx, is not a public API
+
+jsxのコメントを見た感じは、**使えない**ではなく**使ってもこっちは知らないよ**みたいなニュアンスなのかなと感じています。
+
+```tsx
+/**
+ * Create a React element.
+ *
+ * You should not use this function directly. Use JSX and a transpiler instead.
+ */
+export function jsx(
+  type: React.ElementType,
+  props: unknown,
+  key?: React.Key,
+): React.ReactElement;
+```
+
+---
+
+## コードを覗いてみる
+
+単純にfor分で回さなくてよくなったので早くなってそう...？？👀
+
+```ts
+// After: configを直接propsに代入してReactElementに渡している
+  let props;
+  if (enableRefAsProp && disableStringRefs && !('key' in config)) {
+    props = config;
+
+// Before: configをfor分で回して条件に一致したconfigだけkeyで抽出してpropsのkeyに代入している
+    for (propName in config) {
+      if (
+          ...
+      ) {
+        if (enableRefAsProp && !disableStringRefs && propName === 'ref') {
+            ...
+        } else {
+          props[propName] = config[propName];
+```
+
+---
+
+## まとめ
+
+### 1. key, refの予約語をpropsから削除すること
+
+refはpropsで参照できるようになる、keyもスプレット構文を使わなければ問題なし！
+
+### 2. createElemet後にpropsの上書き
+
+React17からjsxという関数が使われていて、それは我々開発者が使うことを推奨していないようなので気にしないでヨシッ👉！
+
+### 実装
+
+今までfor...inでぐるぐる回していたところを単純にfor分で回さなくてよくなった
+
+---
+
+# Have a good development life!
