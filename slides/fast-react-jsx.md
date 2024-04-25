@@ -266,6 +266,8 @@ export function jsx(
 
 ## まとめ
 
+今まではpropsをクローンする必要があった
+
 ### 1. key, refの予約語をpropsから削除すること
 
 refはpropsで参照できるようになる、keyもスプレット構文を使わなければ問題なし！
