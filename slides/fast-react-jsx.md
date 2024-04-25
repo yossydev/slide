@@ -246,11 +246,6 @@ export function jsx(
 単純にfor分で回さなくてよくなったので早くなってそう...？？👀
 
 ```ts
-// After: configを直接propsに代入してReactElementに渡している
-  let props;
-  if (enableRefAsProp && disableStringRefs && !('key' in config)) {
-    props = config;
-
 // Before: configをfor分で回して条件に一致したconfigだけkeyで抽出してpropsのkeyに代入している
     for (propName in config) {
       if (
@@ -260,6 +255,11 @@ export function jsx(
             ...
         } else {
           props[propName] = config[propName];
+
+// After: configを直接propsに代入してReactElementに渡している
+  let props;
+  if (enableRefAsProp && disableStringRefs && !('key' in config)) {
+    props = config;
 ```
 
 ---
