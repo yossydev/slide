@@ -17,7 +17,7 @@ paginate: true
 - Name: ユウト
 - Field: Web Developer
 - Blog: [yossy.dev](https://yossy.dev/)
-- SNS: [@yossydev](https://twitter.com/yossydev)
+- SNS / Youtube: [@yossydev](https://twitter.com/yossydev)
 
 ![bg right h:40%](./images/yossydev.jpg)
 
@@ -32,11 +32,11 @@ paginate: true
 
 ---
 
-# 高速化の要因
+# 高速化のポイント
 
 ---
 
-# 高速化の要因
+# 高速化のポイント
 
 ## propsをクローンする必要がなくなった
 
@@ -128,7 +128,7 @@ keyとrefをpropsで渡さないようにする必要があった。
 
 ## 2. createElementがpublic apiである
 
-### `createElemet` is 何？
+### createElementとは何か
 
 React17以前で使われていたjsxをdomに変換するための関数。これは我々開発者がReactからimportして使用することもできる
 
@@ -187,7 +187,7 @@ function Greeting({ name }) {           function Greeting({ name }) {
 > the new JSX runtime, jsx, is not a public API
 > 翻訳: 新しいJSXランタイムjsxはパブリックAPIではない
 
-jsx関数にしたことでpropsの上書きを考慮しなくて良くなった。
+jsx関数はpublic apiではないため、ユーザーによるpropsの上書きを考慮する必要がなくなった
 
 ---
 
