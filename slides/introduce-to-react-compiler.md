@@ -15,8 +15,9 @@ paginate: true
 ## Profile
 
 - Name: ユウト
-- Field: Web Developer
+- Field: Web Frontend Developer
 - [X](https://twitter.com/yossydev)
+- [Bluesky](https://bsky.app/profile/yossydev.com)
 - [Blog](https://yossy.dev/)
 - [Youtube](https://www.youtube.com/@yossydev)
 
@@ -29,19 +30,21 @@ paginate: true
 1. What is React
 1. What is React Compiler
 1. What makes the React Compiler happy?
-1. React Compiler's HIR
+1. ~~React Compiler's HIR~~
 1. Summary
 
 ---
 
 # What is React
 
+Reactとは？
+
 ---
 
 ## What is React
 
-Indispensable for today's web application development.
-訳: 今のフロントエンド開発になくてはならないもの。
+Libraries that make it easier for developers to create web apps.
+訳: Webアプリを開発者が作りやすいようにしてくれるライブラリ
 
 other tool
 
@@ -49,7 +52,8 @@ other tool
 - Svelte
 - Astro
 - SoildJS
-- qwik
+- Qwik
+- HonoX
 
 ---
 
@@ -71,7 +75,62 @@ React Compilerとは？
 
 ## What is React Compiler
 
-Developers have used the following React APIs for optimisation
+Foo is re-rendered every time a button is clicked.
+訳: buttonをクリックするたびにFooが再レンダリングされてしまう
+
+```tsx
+const App = () => {
+  const [count, setCount] = useState(0);
+  return (
+    <>
+      <button onClick={() => setCount((count) => count + 1)}>
+        count is {count}
+      </button>
+      <Foo />
+    </>
+  );
+};
+
+// Not memoised.
+const Foo = () => {
+  console.log("レンダリング！");
+  return <></>;
+};
+```
+
+---
+
+## What is React Compiler
+
+Developer memoing to prevent unnecessary re-rendering.
+訳: 開発者がメモ化して不要な再レンダリングを防ぐ
+
+```tsx
+const App = () => {
+  const [count, setCount] = useState(0);
+  return (
+    <>
+      <button onClick={() => setCount((count) => count + 1)}>
+        count is {count}
+      </button>
+      <Foo />
+    </>
+  );
+};
+
+// Not memoised.
+const Foo = memo(() => {
+  console.log("レンダリング！");
+  return <></>;
+});
+```
+
+---
+
+## What is React Compiler
+
+React basically re-renders everything, so use the following API to optimise (memoise)
+訳: Reactは基本的に全てを再レンダリングするので、以下のAPIを使って最適化（メモ化）を行なう
 
 - useMemo
 - useCallback
@@ -81,13 +140,12 @@ Developers have used the following React APIs for optimisation
 
 ## What is React Compiler
 
-Developers have used the following React APIs for optimisation
+**React Compiler does not use these and performs optimisations automatically!**
+訳: React Compilerはこれらを使用せず、自動的に最適化を行います！
 
 ~~- useMemo~~
 ~~- useCallback~~
 ~~- React.memo~~
-
-**React Compiler does not use these and performs optimisations automatically!**
 
 ---
 
@@ -100,7 +158,13 @@ React Compilerは何が嬉しいの？
 ## What makes the React Compiler happy?
 
 1. Manual memoization → Auto memoization
-2. Code quality assurance through compilation checks
+2. Code can be checked by the compiler.
+
+---
+
+# Manual memoization → Auto memoization
+
+手動メモ化 → 自動メモ化
 
 ---
 
@@ -224,15 +288,16 @@ b. 「Necessary because 〇〇 is 〇〇」
 
 ---
 
-### Code quality assurance through compilation checks
+# Code can be checked by the compiler
 
-Allow the compilation to fail if there is unintended/unauthorised code
+コンパイラによるコードのチェックができる
 
 ---
 
-### Code quality assurance through compilation checks
+### Code can be checked by the compiler
 
-Example) Where do you think they fail?
+Question) Do you think this code is an error?
+訳: このコードはエラーになると思いますか？
 
 ```tsx
 function Component(props) {
@@ -247,13 +312,15 @@ function Component(props) {
 
 ---
 
-### Code quality assurance through compilation checks
+### code can be checked by the compiler
+
+Answer) Compilation error!
+`InvalidReact: Mutating component props or hook arguments is not allowed. Consider using a local variable instead (4:4)`
 
 ```tsx
 function Component(props) {
   const items = [];
   for (const x of props.items) {
-    // InvalidReact: Mutating component props or hook arguments is not allowed. Consider using a local variable instead (4:4)
     x.modified = true;
     items.push(x);
   }
@@ -263,26 +330,9 @@ function Component(props) {
 
 ---
 
-### Code quality assurance through compilation checks
+### Code can be checked by the compiler
 
-Valid Code.
-
-```tsx
-function Component(props) {
-  const modifiedItems = props.items.map((item) => ({
-    ...item,
-    modified: true,
-  }));
-
-  return (
-    <ul>
-      {modifiedItems.map((item, index) => (
-        <li key={index}>{/* <div></div> */}</li>
-      ))}
-    </ul>
-  );
-}
-```
+他にもエラーになるケースはたくさんあります！[playground](https://playground.react.dev/#N4Igzg9grgTgxgUxALhAMygOzgFwJYSYAEAwhALYAOhCmOAFJTBJWAJRHAA6xRchYHETw4E5MEQC8RANoBdANw8iRNBBhF6-TIKIAPIhDREmLMADoRY9p2Ur958hAAmeNHgTOpRHDCgIlXhUrcXNKKDAAC3o9NkCVAF87GAQcWGIQsECkzBAEoA)を触ったり、[テストケース](https://github.com/facebook/react/tree/main/compiler/packages/babel-plugin-react-compiler/src/__tests__/fixtures/compiler)を見たりしてみてください！
 
 <!--
 # About React Compiler`s HIR
@@ -326,7 +376,7 @@ Example JavaScript Code
 
 ```js
 a ?? b;
-```
+````
 
 - this code is **if a is nullabe then return b**
 - React Compiler wants to use this code because of this is not change `if`
@@ -357,6 +407,8 @@ a ?? b;
 - React CompilerがReact19から入る
 - 自動で最適化を行ってくれたり、変なコードはコンパイルエラーを出してくれるようになる
 - 特段何か設定する必要はない
+  - babelプラグインとして使う
+  - フレームワーク側の設定に合わせる
 
 他にも面白いものあるよ！（eslintSuppressionRules, opt-in/opt-out, HIR...）
 
