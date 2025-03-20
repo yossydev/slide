@@ -1,5 +1,5 @@
 ---
-title: "Rust製JavaScriptエンジンのTypedArray builtinメソッドの最適化"
+title: "Rust製JavaScriptエンジンのTypedArray builtinの最適化"
 description: "ネイティブコードを使った最適化の話"
 marp: true
 theme: default
@@ -19,7 +19,7 @@ paginate: true
 - Blog: [yossy.dev](https://yossy.dev/)
 - Contributor: [Nova](https://github.com/trynova/nova)&[Andromeda](https://github.com/tryandromeda/andromeda)
 
-![bg right h:40%](./images/yossydev-v2.jpg)
+![bg right h:40%](./images/yossydev.jpg)
 
 ---
 
@@ -92,8 +92,6 @@ Arrayの`indexOf`と同じだが、扱うデータ型がTypedArray専用。
     d. Set k to k + 1.
 ```
 
-シンプルだがパフォーマンスには課題がある。
-
 ---
 
 ## 最初の実装
@@ -117,6 +115,25 @@ while k < len {
     // c. Set k to k + 1.
     k += 1
 }
+```
+
+---
+
+### 測ってみる
+
+値が0の要素が1000万個作られ、それに対してindexOfは9999999を指定している
+
+```js
+const SIZE = 10_000_000;
+const arr = new Uint32Array(SIZE);
+arr.indexOf(9999999);
+```
+
+```
+❯ time cargo run eval index.js
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running `target/debug/nova_cli eval index.js`
+cargo run eval index.js  16.88s user 0.29s system 96% cpu 17.724 total
 ```
 
 ---
@@ -163,10 +180,112 @@ CPU使用率も大幅低下
 
 ---
 
+## TypedArray.prototype.reverseとは？
+
+配列の順番を逆にするメソッド
+
+```js
+const uint8 = new Uint8Array([10, 20, 30, 40, 50]);
+
+uint8.reverse(); // [50, 40, 30, 20, 10]
+```
+
+Arra.prototype.reverseと一緒。
+
+---
+
+## 仕様書に基づく動作
+
+<style scoped>
+p { font-size: 16px; }
+</style>
+
+仕様書では、要素を順番に確認するループを実行
+
+```pseudo
+4. Let middle be floor(len / 2).
+5. Let lower be 0.
+6. Repeat, while lower ≠ middle,
+   a. Let upper be len - lower - 1.
+   b. Let upperP be ! ToString(𝔽(upper)).
+   c. Let lowerP be ! ToString(𝔽(lower)).
+   d. Let lowerValue be ! Get(O, lowerP).
+   e. Let upperValue be ! Get(O, upperP).
+   f. Perform ! Set(O, lowerP, upperValue, true).
+   g. Perform ! Set(O, upperP, lowerValue, true).
+   h. Set lower to lower + 1.
+```
+
+length - 1がその配列の最大値、そしてそこからlower文を引くので、ループするたびに最大値から一個少なくなる。
+ループ時点での最初の値を最後に、最後の値を最初に持ってくるようにsetする。
+
+---
+
+## 最初の実装
+
+<style scoped>
+p { font-size: 16px; }
+</style>
+
+```rust
+while lower != middle {
+    // a. Let upper be len - lower - 1.
+    let upper = len - lower - 1;
+    // b. Let upperP be ! ToString(𝔽(upper)).
+    let upper_p = PropertyKey::Integer(upper.try_into().unwrap());
+    // c. Let lowerP be ! ToString(𝔽(lower)).
+    let lower_p = PropertyKey::Integer(lower.try_into().unwrap());
+    // d. Let lowerValue be ! Get(O, lowerP).
+    let lower_value = unwrap_try(try_get(...));
+    // e. Let upperValue be ! Get(O, upperP).
+    let upper_value = unwrap_try(try_get(...));
+    // f. Perform ! Set(O, lowerP, upperValue, true).
+    try_set(...);
+    // g. Perform ! Set(O, upperP, lowerValue, true).
+    try_set(...);
+    // h. Set lower to lower + 1.
+    lower += 1;
+}
+```
+
+---
+
+## 最適化の具体的方法
+
+1. TypedArrayのバイト列を取得
+2. mutableなsliceを生成
+2. Rustの`align_to_mut`で型変換
+3. ネイティブ`reverse`を利用した高速変換
+
+```rust
+let byte_slice = array_buffer.as_mut_slice(agent);
+let (head, slice, _) = unsafe { byte_slice.align_to_mut::<T>() };
+let slice = &mut slice[..len];
+slice.reverse();
+```
+
+---
+
+## ベンチマーク結果
+
+```js
+const SIZE = 10_000_000;
+const arr = new Uint32Array(SIZE);
+arr.indexOf(9999999);
+```
+
+| 状態     | 実行時間     |
+| -------- | ------------ |
+| 最適化前 | 約18秒       |
+| 最適化後 | 約0.5秒      |
+| 改善効果 | 約36倍高速化 |
+
+---
+
 ## まとめ
 
-- 型が確定するデータ処理はネイティブコードが有効
-- TypedArrayなどの処理では特に効果的
-- 他の機能にも応用可能性あり
+- JavaScriptエンジンの最適化の一つにネイティブコードを使うという方法
+- 今回はRustだけど、多分C++でも似たようなことやってるのかなと思う
+- 最適化しようとすると、JSのいろんな動きを考慮する必要が出てくるのでとても楽しい
 
 ご静聴ありがとうございました。
