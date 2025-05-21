@@ -17,7 +17,7 @@ paginate: true
 - [Why build a JavaScript engine?](https://trynova.dev/blog/why-build-a-js-engine)
 - [What is the Nova JavaScript engine?](https://trynova.dev/blog/what-is-the-nova-javascript-engine)
 - Rust言語で書かれたJavaScriptエンジン
-- test262の通過率は約60%
+- test262の通過率は約66%
     1. 大体動く: Array,Map,TypedArray,Proxy, etc…
     2. 未実装: Module,RegExp,Atomic, etc…
 
