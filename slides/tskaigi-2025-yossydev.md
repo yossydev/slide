@@ -85,8 +85,8 @@ if cfg!(feature = "jsx") {
 ## どのようにサポートしているのか？
 
 - Parserにoxcを使用
-  - oxcを使っているからできていることでもある
-- enumやnamespaceを動かすためには、parse後にbytecodeにコンパイルする処理を書く必要がある
+- Parse後にJavaScriptエンジンなら当然、bytecodeにコンパイルする処理を書く必要がある
+- TypeScript独自の構文であるenumやnamespaceも同様にJavaScript Engineが扱うならbytecodeにコンパイルさせる必要がある
 - enumはtskaigiまでに間に合わせようと思っていたけどサボった
 （ https://github.com/trynova/nova/pull/598 ）
 
