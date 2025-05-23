@@ -10,6 +10,10 @@ paginate: true
 
 2025/05/23 [tskaigi 2025](https://2025.tskaigi.org/talks/yossydev)
 
+<!--
+スライド
+-->
+
 ---
 
 ## Rust製JavaScript Engine is Nova
@@ -23,12 +27,13 @@ paginate: true
     2. 未実装: Module,RegExp,Atomic, etc…
 
 <!--
-- NovaというRust製JavaScriptがあります。
+- タイトルにあるRust製JavaScriptとはNovaのことを指しています。
 - Novaが何かとか、なんで作っているか。みたいな話は、今日はしません。
-- なのでよかったら貼ってあるリンクを見てください。
+- なのでよかったら貼ってあるリンク、Why build a JavaScript engine/What is the Nova JavaScript engineを見てください。
+- さらに時間がないので、結構色々な説明を省いています。後で調べるか聞くかしてください。
 - 簡単に僕の口から説明をしておくと、Novaとは、Rust言語で書かれたJavaScriptのエンジンです。
 - JavaScriptのエンジンは有名どころでいうと、v8,JavaScriptCore,SpiderMonkey,LibJS,Boaなどがあります。
-- そして、ecma262に対してのテストであるtest262では今約66%ほど通っています。
+- このNovaは、ecma262に対してのテストであるtest262は、今約66%ほど通っています。
 - 今は、Array,Map,TypedArray,Proxyなどは大体動きますが、Module,RegExp,Atomicなどはまだ動かないです
 -->
 
@@ -113,10 +118,12 @@ if cfg!(feature = "jsx") {
 
 <!--
 - 具体的な実装コードを少しみてみましょう。
-- feature = typescriptと囲まれた中に、with_typescriptと書いています。このbooleanをtrueにしています。
-- 実はこれだけです。
-- ちなみにこれみていて気づいたんですが、with_jsxというのもあるみたいなので、色々やることはありますが、jsxも動かせる様になるかもしれないですね。
-- 僕は必要だとは今は思わないですが、可能性があることはいいことです。
+- 最初のwith_moduleとかwith_scirptとかは無視してもらって、次のところですね。
+- feature = typescriptと囲まれた中に、with_typescript: trueと書いています。
+- 実は先ほどの型アノテーションだけなら、これだけで動作します。理由は後で話します。
+- あと、コードを読んでていて気づいたんですが、with_jsxというのもあるみたいです。
+- これを使えば、色々やることはありそうだしあると思いますが、jsxもengineで処理できる様になるかもしれないですね。
+- engineのjsx実行は僕は必要だとは思わないですが、可能性があることはいいことです。
 -->
 
 ---
@@ -124,27 +131,33 @@ if cfg!(feature = "jsx") {
 ## どのようにサポートしているのか？
 
 - Parserにoxcを使用
-- Parse後にJavaScriptエンジンなら当然、bytecodeにコンパイルする処理を書く必要がある
-- TypeScript独自の構文であるenumやnamespaceも同様にJavaScript Engineが扱うならbytecodeにコンパイルさせる必要がある
-- enumサポートはまだ途中（ https://github.com/trynova/nova/pull/598 ）
+  ```rs
+  // nova_vm/src/ecmascript/scripts_and_modules/source_code.rs#L95
+  let parser = Parser::new(..., source_text, source_type);
+  ```
+- Parse後に、JavaScriptエンジンなら当然、bytecodeにコンパイルする処理を書く必要がある
+- TypeScript独自の構文であるenumやnamespaceも同様にJavaScriptエンジンが扱うならbytecodeにコンパイルさせる必要がある
+- enumのbytecodeコンパイルは実装途中（ [#598](https://github.com/trynova/nova/pull/598) ）
 
 <!--
 - 次に、どのようにサポートしているかです。
-- まずParserにはoxcを使用しています。
-- 先ほどのwith_typescriptやwith_jsxも、oxcのおかげで使えているという感じです。
-- そしてこのparse後にJavaScriptエンジンなら当然、bytecodeにコンパイルする処理を書く必要があります。
-- そしてTypeScript独自の構文であるenumやnamespaceも同様に、JavaScript Engineが扱うならbytecodeにコンパイルさせる必要があります。
-- enumはやってみてと言われたので、途中まで書きました。あと少しでできるかなと思います。
+- まず、Parserにはoxcを使用しています。
+- 先ほどのwith_typescriptやwith_jsxも、oxcのapiとして提供されているので使えているという感じです。
+- Parser:newってところで、source_typeを渡しているかと思いますが、ここのwith_typescriptみたいなオプションが入ってきます。
+- source_textはsource_textです。
+- そしてこのparse後に、JavaScriptエンジンなら当然、bytecodeにコンパイルする処理を書く必要があります。
+- ここでポイントなのは、TypeScript独自の構文であるenumやnamespaceも同様に、JavaScript Engineが扱うならbytecodeにコンパイルさせる必要があります。
+- enumはやってみてと言われたので、動かすだけなら、後少しでできるかなと思います、途中まで書きました。
 -->
 
 ---
 
 ## 正式にサポートするの？
 
-- わからない
-- TypeScriptのサポートをメインに考えているわけではないので、ネイティブサポートするかはわからない
+- わからない🤷‍♂️
+- TypeScriptのサポートをメインに考えているわけではないので、本格的にサポートするかはわからない
   - まずtest262を通すことが優先。
-- strip-typesのサポートも聞いたら、「やってみたら動いた！」みたいな感じだった。
+- 現状のTypeScriptサポートも聞いたら、「やってみたら動いた！」みたいな感じだった。
 - なので誰か手が空いた人が進めていくみたいな感じにはなると思う。
 
 <!--
@@ -163,3 +176,7 @@ if cfg!(feature = "jsx") {
 現状の開発において、TypeScriptを使わないことはありえなくなってきている（というかなっている）。
 であれば、JS EngineがTypeScriptをネイティブで実行できるようにしても良いのかなと思う。
 そしてその結果、あわよくば型情報を使った最適化を可能にし、よりJavaScriptが高速で動くことを期待したい。
+
+<!--
+スライド
+-->
