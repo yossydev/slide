@@ -6,7 +6,8 @@
       "Bash(./generate.sh:*)",
       "Bash(rm:*)",
       "Bash(make:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
