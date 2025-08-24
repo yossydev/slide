@@ -5,7 +5,8 @@
       "mcp__notion__notion-update-page",
       "Bash(./generate.sh:*)",
       "Bash(rm:*)",
-      "Bash(make:*)"
+      "Bash(make:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }
