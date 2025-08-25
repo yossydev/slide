@@ -2,12 +2,11 @@
 marp: true
 theme: gaia
 paginate: true
-header: "**フロントエンドカンファレンス東京 x Vue Fes Japan** JavaScriptのAPIはどこから来る？"
+header: "**フロントエンドカンファレンス東京 x Vue Fes Japan** 普段使っているAPIが現場に届くまで"
 footer: "by **ユウト**"
 ---
 
-# JavaScriptのAPIはどこから来る？
-## 〜普段使っているAPIが現場に届くまで〜
+# 普段使っているAPIが現場に届くまで
 
 **yossydev**
 フロントエンドカンファレンス東京 x Vue Fes Japan
@@ -24,9 +23,9 @@ OSS活動を軸に話していきます
 
 ## 問題提起
 
-フロントエンドの移り変わりが早すぎて疲れませんか？
+フレームワークとかツールチェイン、いわゆるエコシステムな物を追い続けるのは体力がいる。
 
-新しいフレームワークが月1で出る現状...
+効率よく追えるような知識あった方が生成AI時代には良いのでは。
 
 ---
 
@@ -97,7 +96,23 @@ OSS活動を軸に話していきます
 ECMA-262の仕様書通りにAPIが作られているかをチェック
 
 最近RegExpに取り組み中
-来月には**80%**到達予定
+来月には**80%**に行きそう
+
+---
+
+## Array.prototype.mapの実装を覗いてみる
+
+![bg h:60%](./481553891-dd0e1c06-350e-4c4f-b109-aa656c907706.png)
+
+---
+
+## Novaの実装
+
+https://github.com/trynova/nova/blob/73a35f81b30c95fcca269644529fdb5d4165421c/nova_vm/src/ecmascript/builtins/indexed_collections/array_objects/array_prototype.rs#L1944
+
+- 結構愚直
+- mapはcallbackを受け取るメソッドなので、jsとrustの言語差による違いがあって最適化が難しい
+- spider monkeyだと、callbackをjitコンパイル時にバイナリとしてインライン展開するようにすることで最適化を行う（確かそうだったはず）
 
 ---
 
@@ -137,9 +152,25 @@ ECMA-262の仕様書通りにAPIが作られているかをチェック
 
 ## fetchの実装
 
-fetchの仕様って膨大で、自分が思っていた以上に大きいものになっています。
+- fetchの仕様は膨大
+- Request/Response/Headerクラスもfetchの範囲
+- fetch methodからfetching/main fetch/schema fetch/http fetch/http network fetchみたいな分類になっている
 
-Request/Response/Headerクラスとかもfetchの範囲になってくるし、さらにfetch methodからfetching/main fetch/schema fetch/http fetch/http network fetchみたいに分類されていたりします。仕様書1000ページ超えです。
+---
+
+## fetchのRuntime実装を覗いてみる
+
+https://fetch.spec.whatwg.org/
+
+---
+
+## Andromedaのfetch実装
+
+https://github.com/tryandromeda/andromeda/blob/main/runtime/src/ext/fetch/fetch/mod.ts
+
+- 本来は全てRustで書きたいし書けると思うがNovaが全てのapiを公開していないのでtsで書いてます。
+- 最近までテストがなく、自分でテストを書いたりしていたが流石にしんどくなってきたので[wpt runner](https://github.com/tryandromeda/andromeda/pull/117)を作った
+- 大きな実装は終え、ここからはnetwork系の処理を作っていく
 
 ---
 
@@ -186,11 +217,31 @@ Request/Response/Headerクラスとかもfetchの範囲になってくるし、�
 
 ---
 
-## 興味を持ったのであれば
+## 仕様書からコードへ：開発者の視点
 
-engineでもruntimeでもいいので、コードと仕様書を見比べてみましょう。
+**仕様書を読むときのコツ**：
+1. **Step番号**に注目 → コードの処理順序
+2. **抽象操作**を理解 → 実装の関数呼び出し
+3. **エラーケース**を確認 → Exception処理
 
-おすすめはコードを少しいじって、テスト走らせてみていくと実際に今日のチェックもできるので理解が進むと思います。
+**実装を読むときのコツ**：
+1. **コメント**で仕様書のステップを確認
+2. **テストケース**で挙動を理解
+3. **エラーハンドリング**でエッジケースを把握
+
+---
+
+## 実践的な学習方法
+
+**engineでもruntimeでもいいので、コードと仕様書を見比べてみましょう。**
+
+おすすめアプローチ：
+1. 気になるAPIの仕様書を読む
+2. 実装コードを探して読む
+3. コードを少しいじってテストを走らせる
+4. 仕様書とコードの対応を確認
+
+実際に手を動かすと理解が深まります！
 
 ---
 
