@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__notion__fetch",
+      "mcp__notion__notion-update-page",
+      "Bash(./generate.sh:*)",
+      "Bash(rm:*)",
+      "Bash(make:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": []
+  }
+}
